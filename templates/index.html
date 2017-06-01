@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 
+{% load staticfiles %}
+
 {% block title %}MultiChat Example{% endblock %}
 {% block header_text %}MultiChat Example{% endblock %}
 
 {% block content %}
-
+    <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+    <script src="{% static "js/jsencrypt.min.js" %}"></script>
+  
     <ul class="rooms">
         {% for room in rooms %}
             <li class="room-link" data-room-id="{{ room.id }}">{{ room }}</li>
@@ -16,12 +20,33 @@
     <div id="chats">
     </div>
 
-{% endblock %}
+<textarea hidden id="privkey" rows="15" cols="65">-----BEGIN RSA PRIVATE KEY-----
+MIICXQIBAAKBgQDlOJu6TyygqxfWT7eLtGDwajtNFOb9I5XRb6khyfD1Yt3YiCgQ
+WMNW649887VGJiGr/L5i2osbl8C9+WJTeucF+S76xFxdU6jE0NQ+Z+zEdhUTooNR
+aY5nZiu5PgDB0ED/ZKBUSLKL7eibMxZtMlUDHjm4gwQco1KRMDSmXSMkDwIDAQAB
+AoGAfY9LpnuWK5Bs50UVep5c93SJdUi82u7yMx4iHFMc/Z2hfenfYEzu+57fI4fv
+xTQ//5DbzRR/XKb8ulNv6+CHyPF31xk7YOBfkGI8qjLoq06V+FyBfDSwL8KbLyeH
+m7KUZnLNQbk8yGLzB3iYKkRHlmUanQGaNMIJziWOkN+N9dECQQD0ONYRNZeuM8zd
+8XJTSdcIX4a3gy3GGCJxOzv16XHxD03GW6UNLmfPwenKu+cdrQeaqEixrCejXdAF
+z/7+BSMpAkEA8EaSOeP5Xr3ZrbiKzi6TGMwHMvC7HdJxaBJbVRfApFrE0/mPwmP5
+rN7QwjrMY+0+AbXcm8mRQyQ1+IGEembsdwJBAN6az8Rv7QnD/YBvi52POIlRSSIM
+V7SwWvSK4WSMnGb1ZBbhgdg57DXaspcwHsFV7hByQ5BvMtIduHcT14ECfcECQATe
+aTgjFnqE/lQ22Rk0eGaYO80cc643BXVGafNfd9fcvwBMnk0iGX0XRsOozVt5Azil
+psLBYuApa66NcVHJpCECQQDTjI2AQhFc1yRnCU/YgDnSpJVm1nASoRUnU8Jfm3Oz
+uku7JUXcVpt08DFSceCEX9unCuMcT72rAQlLpdZir876
+-----END RSA PRIVATE KEY-----</textarea><br/>
+    <textarea hidden id="pubkey" rows="15" cols="65">-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDlOJu6TyygqxfWT7eLtGDwajtN
+FOb9I5XRb6khyfD1Yt3YiCgQWMNW649887VGJiGr/L5i2osbl8C9+WJTeucF+S76
+xFxdU6jE0NQ+Z+zEdhUTooNRaY5nZiu5PgDB0ED/ZKBUSLKL7eibMxZtMlUDHjm4
+gwQco1KRMDSmXSMkDwIDAQAB
+-----END PUBLIC KEY-----</textarea><br/>{% endblock %}
 
 
 {% block extra_body %}
     <script>
         $(function () {
+
             var caesarShift = function(str) {
             // Wrap the amount
             var amount = 13;
@@ -62,7 +87,17 @@
 
         };
 
+          // Encrypt with the public key...
+          var encrypt = new JSEncrypt();
+          encrypt.setPublicKey($('#pubkey').val());
+          //var encrypted = encrypt.encrypt($('#input').val());
 
+          // Decrypt with the private key...
+          var decrypt = new JSEncrypt();
+          decrypt.setPrivateKey($('#privkey').val());
+          //var uncrypted = decrypt.decrypt(encrypted);
+
+          
             // Correctly decide between ws:// and wss://
             var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
             var ws_path = ws_scheme + '://' + window.location.host + "/chat/stream/";
@@ -77,11 +112,21 @@
 
                 x=data.message;
                 if (typeof(x) != 'undefined') {
-                    var r = caesarShift(x);
-                    var rev = r.split("").reverse().join("");
-                    console.log("Encrypted: " + r + rev);
-                //console.log(x.split("").reverse().join("").split(" ").reverse().join(" "));
-            }
+                    //var caesarshift = caesarShift(x);
+                    //console.log("Encrypted using ceasershift: " + caesarshift);
+                        var encrypted = encrypt.encrypt(x);
+                        console.log("Encrypted text --> " + encrypted);
+                        var uncrypted = decrypt.decrypt(encrypted);
+
+                        console.log("Decrypted text --> " + uncrypted);
+                        // Now a simple check to see if the round-trip worked.
+                         /* if (uncrypted == x) {
+                            alert('It's working );
+                          }
+                          else {
+                            alert('Something went wrong....');
+                          }*/
+                }
 
                 // Handle errors
                 if (data.error) {
