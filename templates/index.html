@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}REAL TIME CHAT WITH END-TO-END ENCRYPTION{% endblock %}
-{% block header_text %}REAL TIME CHAT{% endblock %}
+{% block title %}MultiChat Example{% endblock %}
+{% block header_text %}MultiChat Example{% endblock %}
 
 {% block content %}
 
@@ -9,7 +9,7 @@
         {% for room in rooms %}
             <li class="room-link" data-room-id="{{ room.id }}">{{ room }}</li>
         {% empty %}
-            <p class="empty">No chat rooms defined. Maybe make some in the <a href="{% url 'admin:index' %}">admin</a>?</p>
+            <p class="empty">No chat rooms defined. Maybe make some in the <a href="/admin/">admin</a>?</p>
         {% endfor %}
     </ul>
 
@@ -22,6 +22,47 @@
 {% block extra_body %}
     <script>
         $(function () {
+            var caesarShift = function(str) {
+            // Wrap the amount
+            var amount = 13;
+            if (amount < 0)
+                return caesarShift(str, amount + 26);
+            // Make an output variable
+            var output = '';
+
+            // Go through each character
+            for (var i = 0; i < str.length; i ++) {
+
+                // Get the character we'll be appending
+                var c = str[i];
+
+                // If it's a letter...
+                if (c.match(/[a-z]/i)) {
+
+                    // Get its code
+                    var code = str.charCodeAt(i);
+
+                    // Uppercase letters
+                    if ((code >= 65) && (code <= 90))
+                        c = String.fromCharCode(((code - 65 + amount) % 26) + 65);
+
+                    // Lowercase letters
+                    else if ((code >= 97) && (code <= 122))
+                        c = String.fromCharCode(((code - 97 + amount) % 26) + 97);
+
+                }
+
+                // Append
+                output += c;
+
+            }
+
+            // All done!
+            return output;
+
+        };
+
+
             // Correctly decide between ws:// and wss://
             var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
             var ws_path = ws_scheme + '://' + window.location.host + "/chat/stream/";
@@ -34,8 +75,14 @@
                 console.log("Got websocket message " + message.data);
                 var data = JSON.parse(message.data);
 
+                x=data.message;
+                if (typeof(x) != 'undefined') {
+                    var r = caesarShift(x);
+                    var rev = r.split("").reverse().join("");
+                    console.log("Encrypted: " + r + rev);
+                //console.log(x.split("").reverse().join("").split(" ").reverse().join(" "));
+            }
 
-                console.log("hello" + data.message);
                 // Handle errors
                 if (data.error) {
                     alert(data.error);
