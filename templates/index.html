@@ -169,22 +169,22 @@ gwQco1KRMDSmXSMkDwIDAQAB
                             // Message
                             ok_msg = "<div class='message'>" +
                                     "<span class='username'>" + data.username + "</span>" +
-                                    "<span class='body'>" + data.message + "</span>" +
+                                    "<span class='body'>" + uncrypted + "</span>" +
                                     "</div>";
                             break;
                         case 1:
                             // Warning / Advice messages
-                            ok_msg = "<div class='contextual-message text-warning'>" + data.message +
+                            ok_msg = "<div class='contextual-message text-warning'>" + uncrypted +
                                     "</div>";
                             break;
                         case 2:
                             // Alert / Danger messages
-                            ok_msg = "<div class='contextual-message text-danger'>" + data.message +
+                            ok_msg = "<div class='contextual-message text-danger'>" + uncrypted +
                                     "</div>";
                             break;
                         case 3:
                             // "Muted" messages
-                            ok_msg = "<div class='contextual-message text-muted'>" + data.message +
+                            ok_msg = "<div class='contextual-message text-muted'>" + uncrypted +
                                     "</div>";
                             break;
                         case 4:
